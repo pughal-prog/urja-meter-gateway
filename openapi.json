@@ -1,0 +1,691 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Urja Meter Ops API",
+    "summary": "A clean, typed REST API wrapper in front of legacy Urja Meter Ops portal",
+    "description": "Provides standardized, resource-oriented access to smart meters, readings, energy consumption analytics, and electrical grid hierarchy.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Check API and portal health",
+        "description": "Return service liveness and upstream portal reachability.",
+        "operationId": "check_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/meters": {
+      "get": {
+        "tags": [
+          "Meters"
+        ],
+        "summary": "List or search smart meters",
+        "description": "List or search smart meters with filtering and pagination.",
+        "operationId": "list_meters_v1_meters_get",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by serial number or location",
+              "title": "Query"
+            },
+            "description": "Search by serial number or location"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by operational status",
+              "title": "Status"
+            },
+            "description": "Filter by operational status"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Maximum items to return",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Maximum items to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Offset for pagination",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Offset for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMetersResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/meters/{meter_id}": {
+      "get": {
+        "tags": [
+          "Meters"
+        ],
+        "summary": "Get smart meter details",
+        "description": "Retrieve detailed metadata and location for a specific smart meter.",
+        "operationId": "get_meter_v1_meters__meter_id__get",
+        "parameters": [
+          {
+            "name": "meter_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Meter Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meter"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/meters/{meter_id}/consumption": {
+      "get": {
+        "tags": [
+          "Meters"
+        ],
+        "summary": "Get meter energy consumption",
+        "description": "Retrieve aggregated consumption time-series for a smart meter.",
+        "operationId": "get_meter_consumption_v1_meters__meter_id__consumption_get",
+        "parameters": [
+          {
+            "name": "meter_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Meter Id"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Start timestamp in ISO-8601 UTC",
+              "title": "From"
+            },
+            "description": "Start timestamp in ISO-8601 UTC"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "End timestamp in ISO-8601 UTC",
+              "title": "To"
+            },
+            "description": "End timestamp in ISO-8601 UTC"
+          },
+          {
+            "name": "granularity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(hourly|daily|monthly)$",
+              "description": "Aggregation granularity",
+              "default": "hourly",
+              "title": "Granularity"
+            },
+            "description": "Aggregation granularity"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Consumption"
+                  },
+                  "title": "Response Get Meter Consumption V1 Meters  Meter Id  Consumption Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/hierarchy": {
+      "get": {
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Get electrical grid hierarchy tree",
+        "description": "Retrieve full electrical distribution hierarchy from substations to meters.",
+        "operationId": "get_hierarchy_v1_hierarchy_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Node"
+                  },
+                  "type": "array",
+                  "title": "Response Get Hierarchy V1 Hierarchy Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/hierarchy/meters/{meter_id}/ancestors": {
+      "get": {
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Get meter electrical path",
+        "description": "Retrieve upstream chain of supply (feeder, transformer, substation) for a meter.",
+        "operationId": "get_meter_ancestors_v1_hierarchy_meters__meter_id__ancestors_get",
+        "parameters": [
+          {
+            "name": "meter_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Meter Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Node"
+                  },
+                  "title": "Response Get Meter Ancestors V1 Hierarchy Meters  Meter Id  Ancestors Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Consumption": {
+        "properties": {
+          "meter_id": {
+            "type": "string",
+            "title": "Meter Id",
+            "description": "Unique meter identifier"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Time",
+            "description": "Start of window in UTC ISO-8601"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End Time",
+            "description": "End of window in UTC ISO-8601"
+          },
+          "granularity": {
+            "type": "string",
+            "title": "Granularity",
+            "description": "Granularity of aggregation (hourly, daily, monthly)",
+            "default": "hourly"
+          },
+          "readings_count": {
+            "type": "integer",
+            "title": "Readings Count",
+            "description": "Number of samples included in this window",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "meter_id",
+          "start_time",
+          "end_time"
+        ],
+        "title": "Consumption",
+        "description": "Aggregated energy consumption over a time window."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Overall service status ('ok' or 'degraded')",
+            "default": "ok"
+          },
+          "portal_reachable": {
+            "type": "boolean",
+            "title": "Portal Reachable",
+            "description": "Whether legacy portal is reachable",
+            "default": false
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "API version",
+            "default": "0.1.0"
+          }
+        },
+        "type": "object",
+        "title": "HealthStatus",
+        "description": "Health check response payload."
+      },
+      "Location": {
+        "properties": {
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude",
+            "description": "WGS84 latitude coordinate"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude",
+            "description": "WGS84 longitude coordinate"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address",
+            "description": "Physical site address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City",
+            "description": "City or administrative area"
+          },
+          "substation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Substation",
+            "description": "Electrical substation name"
+          },
+          "feeder": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feeder",
+            "description": "Associated distribution feeder name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Location",
+        "description": "Geographic and administrative location coordinates."
+      },
+      "Meter": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique system-wide meter identifier"
+          },
+          "serial_number": {
+            "type": "string",
+            "title": "Serial Number",
+            "description": "Hardware serial number displayed on physical device"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MeterStatus",
+            "description": "Current operational status",
+            "default": "UNKNOWN"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Location"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Physical and network location"
+          },
+          "installed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installed At",
+            "description": "Installation timestamp in UTC"
+          },
+          "last_reading_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Reading At",
+            "description": "Timestamp of last received reading in UTC"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "serial_number"
+        ],
+        "title": "Meter",
+        "description": "Canonical representation of a smart meter."
+      },
+      "MeterStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INACTIVE",
+          "FAULT",
+          "DISCONNECTED",
+          "UNKNOWN"
+        ],
+        "title": "MeterStatus",
+        "description": "Operational status of a smart meter."
+      },
+      "Node": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique node identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Display label or asset identifier"
+          },
+          "node_type": {
+            "type": "string",
+            "title": "Node Type",
+            "description": "Level in grid hierarchy (substation, feeder, transformer, meter)"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id",
+            "description": "Identifier of parent node in topology"
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            },
+            "type": "array",
+            "title": "Children",
+            "description": "Child nodes in topology"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "node_type"
+        ],
+        "title": "Node",
+        "description": "Grid hierarchy tree node (e.g. Substation -> Feeder -> Transformer -> Meter)."
+      },
+      "PaginatedMetersResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Meter"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Meters matching search criteria"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of matching meters",
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Page limit",
+            "default": 50
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset",
+            "description": "Page offset",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "PaginatedMetersResponse",
+        "description": "Paginated collection of meters."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
