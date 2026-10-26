@@ -1,6 +1,6 @@
-# Urja Meter Ops API Service
+# Urja Meter Gateway
 
-A clean, documented REST API service built in front of the legacy "Urja Meter Ops" web portal (a smart-meter lookup portal with no native API).
+A clean, documented REST API gateway built in front of the legacy "Urja Meter Ops" web portal (a smart-meter lookup portal with no native API).
 
 ---
 
@@ -20,7 +20,8 @@ A clean, documented REST API service built in front of the legacy "Urja Meter Op
 ### Setup
 ```bash
 # Clone and enter directory
-cd urja-meter-api
+git clone https://github.com/pughal-prog/urja-meter-gateway.git
+cd urja-meter-gateway
 
 # Configure environment variables
 cp .env.example .env

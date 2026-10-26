@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "urja-meter-api"
+name = "urja-meter-gateway"
 version = "0.1.0"
 description = "Clean, documented API service in front of the legacy Urja Meter Ops portal"
 readme = "README.md"
